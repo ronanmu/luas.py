@@ -26,26 +26,34 @@ class LuasDirection(Enum):
 class LuasTram(object):
     """ Represents a tram """
 
-    def __init__(self, due, direction, destination, line):
-        self.due = due
-        self.direction = direction
-        self.destination = destination
-        self.line = line
+    def __init__(self, due, direction, destination):
+        self._due = due
+        self._direction = direction
+        self._destination = destination
 
     @property
     def due(self):
         """ Fetch the due property """
-        return self.due
+        return self._due
 
     @due.setter
-    def due(self, due):
-        self.due = due
+    def due(self, value):
+        self._due = value
 
     @property
     def direction(self):
         """ Fetch the direction property """
-        return self.direction
+        return self._direction
 
     @direction.setter
-    def direction(self, direction):
-        self.direction = direction
+    def direction(self, value):
+        self._direction = value
+
+    @property
+    def destination(self):
+        """ Fetch the destination property """
+        return self._destination
+
+    @destination.setter
+    def destiation(self, value):
+        self._destination = value

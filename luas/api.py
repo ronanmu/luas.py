@@ -10,7 +10,7 @@ Licensed under the MIT License
 
 import logging
 from xml.etree import ElementTree
-from luas.models import LuasLine, LuasDirection
+from luas.models import LuasLine, LuasDirection, LuasTram
 import requests
 
 _LOGGER = logging.getLogger(__name__)
@@ -20,6 +20,8 @@ DEFAULT_PARAMS = {'action': 'forecast', 'encrypt': 'false', 'stop': ''}
 DEFAULT_GREEN_LINE_STOP = 'STS'
 DEFAULT_RED_LINE_STOP = 'TAL'
 ATTR_STOP_VAL = 'stop'
+ATTR_DUE_VAL = 'dueMins'
+ATTR_DESTINATION_VAL = 'destination'
 
 XPATH_STATUS = ".//message"
 XPATH_DIRECTION_INBOUND = ".//direction[@name='Inbound']/tram"
@@ -33,7 +35,6 @@ class LuasClient(object):
 
     def __init__(self, api_endpoint=None):
 
-        logging.basicConfig(level=logging.DEBUG)
         if not api_endpoint:
             api_endpoint = DEFAULT_LUAS_API
 
@@ -86,7 +87,10 @@ class LuasClient(object):
                     direction_xpath = XPATH_DIRECTION_OUTBOUND
 
                 result = tree.findall(direction_xpath)
-                return result[0].attrib['dueMins']
+                if result is not None and result[0] is not None:
+                    return LuasTram(result[0].attrib[ATTR_DUE_VAL],
+                                    direction,
+                                    result[0].attrib[ATTR_DESTINATION_VAL])
 
             except AttributeError as attib_err:
                 _LOGGER.error(
@@ -100,16 +104,3 @@ class LuasClient(object):
             )
 
         return
-
-    @staticmethod
-    def _check_response_result(response):
-        """
-
-        :param response:
-        :return Returns value
-        """
-
-        if response.status_code != 200:
-            _LOGGER.error("an error occured %s", response.status_code)
-
-        return response.json()['result']
