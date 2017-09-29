@@ -1,5 +1,5 @@
 """
-tests.test_api
+tests.test_status
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Tests the Luas API
