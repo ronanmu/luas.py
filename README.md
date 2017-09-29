@@ -1,4 +1,4 @@
-#Introduction [![Build Status](https://travis-ci.org/ronanmu/luas.py.svg?branch=master)](https://travis-ci.org/ronanmu/luas.py) [![Coverage Status](https://coveralls.io/repos/ronanmu/luas.py/badge.svg)](https://coveralls.io/r/ronanmu/luas.py)
+# Introduction [![Build Status](https://travis-ci.org/ronanmu/luas.py.svg?branch=master)](https://travis-ci.org/ronanmu/luas.py) [![Coverage Status](https://coveralls.io/repos/ronanmu/luas.py/badge.svg)](https://coveralls.io/r/ronanmu/luas.py)
 luas.py is a python module providing a simple interface to the Dublin Luas API
 luas.py is licensed under the MIT license.
 
