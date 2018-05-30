@@ -4,7 +4,7 @@ luas.api
 
 Provides methods for interrogating Dublin's Luas tram API
 
-Copyright (c) 2017 Ronan Murray <https://github.com/ronanmu>
+Copyright (c) 2018 Ronan Murray <https://github.com/ronanmu>
 Licensed under the MIT License
 """
 
@@ -14,6 +14,15 @@ from luas.models import LuasLine, LuasDirection, LuasTram
 import requests
 
 _LOGGER = logging.getLogger(__name__)
+
+ATTR_STATUS = 'status'
+ATTR_TRAMS = 'trams'
+ATTR_DUE = 'due'
+ATTR_DESTINATION = 'destination'
+ATTR_DIRECTION = 'direction'
+
+ATTR_INBOUND_VAL = 'Inbound'
+ATTR_OUTBOUND_VAL = 'Outbound'
 
 DEFAULT_LUAS_API = "http://luasforecasts.rpa.ie/xml/get.ashx"
 DEFAULT_PARAMS = {'action': 'forecast', 'encrypt': 'false', 'stop': ''}
@@ -41,66 +50,117 @@ class LuasClient(object):
         _LOGGER.debug("Using API at %s", api_endpoint)
         self.api_endpoint = api_endpoint
 
-    def line_status(self, line=LuasLine.Green):
+    def stop_details(self, stop):
         """
-        Fetches the status of the Luas line
+        Returns raw JSON of the Luas details from the requested stop
+        :param stop: Stop to enquire about
+        :return:
         """
-
         luas_params = DEFAULT_PARAMS
-        if line == LuasLine.Green:
-            luas_params[ATTR_STOP_VAL] = DEFAULT_GREEN_LINE_STOP
-        else:
-            luas_params[ATTR_STOP_VAL] = DEFAULT_RED_LINE_STOP
+        DEFAULT_PARAMS[ATTR_STOP_VAL] = stop
+        api_response = requests.get(self.api_endpoint, params=luas_params)
 
-        response = requests.get(self.api_endpoint, params=luas_params)
+        response = {
+            ATTR_STATUS: 'n/a',
+            ATTR_TRAMS: []
+        }
 
-        if response.status_code == 200:
-            _LOGGER.info('Response %s', response.content)
+        if api_response.status_code == 200:
+            _LOGGER.debug('Response received for %s', stop)
             try:
-                tree = ElementTree.fromstring(response.content)
-                result = tree.findall(XPATH_STATUS)
-                return result[0].text.strip()
+                tree = ElementTree.fromstring(api_response.content)
+                status = tree.find(XPATH_STATUS).text.strip()
+                trams = []
+
+                result = tree.findall(XPATH_DIRECTION_INBOUND)
+                if result is not None:
+                    for tram in result:
+                        trams.append({
+                            ATTR_DUE: tram.attrib[ATTR_DUE_VAL],
+                            ATTR_DIRECTION: ATTR_INBOUND_VAL,
+                            ATTR_DESTINATION: tram.attrib[ATTR_DESTINATION_VAL]
+                        })
+
+                result = tree.findall(XPATH_DIRECTION_OUTBOUND)
+                if result is not None:
+                    for tram in result:
+                        trams.append({
+                            ATTR_DUE: tram.attrib[ATTR_DUE_VAL],
+                            ATTR_DIRECTION: ATTR_OUTBOUND_VAL,
+                            ATTR_DESTINATION: tram.attrib[ATTR_DESTINATION_VAL]
+                        })
+
+                response[ATTR_STATUS] = status
+                response[ATTR_TRAMS] = trams
 
             except AttributeError as attib_err:
                 _LOGGER.error(
                     'There was a problem parsing the Luas API response %s',
                     attib_err)
-                _LOGGER.error('Entire response: %s', response.content)
-                return
-        return
+                _LOGGER.error('Entire response: %s', api_response.content)
+
+        else:
+            _LOGGER.error(
+                'HTTP error processing Luas response %s',
+                api_response.status_code
+            )
+
+        return response
+
+    def line_status(self, line=LuasLine.Green):
+        """
+        Fetches the status of the line in questions
+        :param line: Luas line in question
+        :return: text description of the current line status
+        """
+
+        stop = DEFAULT_GREEN_LINE_STOP
+        if line == LuasLine.Red:
+            stop = DEFAULT_RED_LINE_STOP
+
+        response = self.stop_details(stop)
+        return response[ATTR_STATUS]
+
+    def all_trams(self, stop):
+        """
+        Returns all trams from the provided stop
+        :param stop: stop to search from
+        :return: list of all trams
+        """
+        stop_details = self.stop_details(stop)
+        trams = []
+
+        for tram in stop_details[ATTR_TRAMS]:
+            trams.append(self._build_luas_tram_from_map(tram))
+
+        return trams
 
     def next_tram(self, stop, direction=LuasDirection.Inbound):
         """
-        Selects the next tram available from selected stop
+        Retrieves the next tram departing from the requested stop
+        in the requested direction
+        :param stop: Stop name
+        :param direction: Luas Direction
+        :return: LuasTram contain next tram details
         """
 
-        luas_params = DEFAULT_PARAMS
-        DEFAULT_PARAMS[ATTR_STOP_VAL] = stop
-        response = requests.get(self.api_endpoint, params=luas_params)
+        stop_details = self.stop_details(stop)
+        for tram in stop_details[ATTR_TRAMS]:
+            if direction == LuasDirection.Inbound \
+                    and tram[ATTR_DIRECTION] == ATTR_INBOUND_VAL:
+                return self._build_luas_tram_from_map(tram)
+            elif direction == LuasDirection.Outbound \
+                    and tram[ATTR_DIRECTION] == ATTR_OUTBOUND_VAL:
+                return self._build_luas_tram_from_map(tram)
 
-        if response.status_code == 200:
-            _LOGGER.debug('Response received for %s', stop)
-            try:
-                tree = ElementTree.fromstring(response.content)
-                direction_xpath = XPATH_DIRECTION_INBOUND
-                if direction == LuasDirection.Outbound:
-                    direction_xpath = XPATH_DIRECTION_OUTBOUND
+    @staticmethod
+    def _build_luas_tram_from_map(tram):
+        direction = LuasDirection.Inbound
+        if tram[ATTR_DIRECTION] == ATTR_OUTBOUND_VAL:
+            direction = LuasDirection.Outbound
 
-                result = tree.findall(direction_xpath)
-                if result is not None and result[0] is not None:
-                    return LuasTram(result[0].attrib[ATTR_DUE_VAL],
-                                    direction,
-                                    result[0].attrib[ATTR_DESTINATION_VAL])
-
-            except AttributeError as attib_err:
-                _LOGGER.error(
-                    'There was a problem parsing the Luas API response %s',
-                    attib_err)
-                _LOGGER.error('Entire response: %s', response.content)
-                return
-        else:
-            _LOGGER.error(
-                'HTTP error processing Luas response %s', response.status_code
-            )
-
-        return
+        return LuasTram(
+            tram[ATTR_DUE],
+            direction,
+            tram[ATTR_DESTINATION]
+        )

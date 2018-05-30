@@ -1,0 +1,16 @@
+<stopInfo created="2018-05-30T20:15:22" stop="Ranelagh" stopAbv="RAN">
+    <message>Green Line services operating normally</message>
+    <direction name="Inbound">
+        <tram dueMins="DUE" destination="Parnell" />
+        <tram dueMins="5" destination="Broombridge" />
+        <tram dueMins="13" destination="Parnell" />
+        <tram dueMins="18" destination="Broombridge" />
+        <tram dueMins="18" destination="Parnell" />
+    </direction>
+    <direction name="Outbound">
+        <tram dueMins="1" destination="Sandyford" />
+        <tram dueMins="6" destination="Bride's Glen" />
+        <tram dueMins="10" destination="Sandyford" />
+        <tram dueMins="18" destination="Bride's Glen" />
+    </direction>
+</stopInfo>

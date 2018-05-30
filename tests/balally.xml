@@ -1,0 +1,15 @@
+<stopInfo created="2018-05-30T20:05:26" stop="Balally" stopAbv="BAL">
+    <message>Green Line services operating normally</message>
+    <direction name="Inbound">
+        <tram dueMins="5" destination="Broombridge" />
+        <tram dueMins="7" destination="Parnell" />
+        <tram dueMins="11" destination="Parnell" />
+        <tram dueMins="17" destination="Broombridge" />
+    </direction>
+    <direction name="Outbound">
+        <tram dueMins="3" destination="Bride's Glen" />
+        <tram dueMins="8" destination="Sandyford" />
+        <tram dueMins="12" destination="Bride's Glen" />
+        <tram dueMins="18" destination="Sandyford" />
+    </direction>
+</stopInfo>
