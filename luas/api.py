@@ -10,8 +10,8 @@ Licensed under the MIT License
 
 import logging
 from xml.etree import ElementTree
-from luas.models import LuasLine, LuasDirection, LuasTram
 import requests
+from luas.models import LuasLine, LuasDirection, LuasTram
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -145,13 +145,18 @@ class LuasClient(object):
         """
 
         stop_details = self.stop_details(stop)
+        output_tram = None
         for tram in stop_details[ATTR_TRAMS]:
             if direction == LuasDirection.Inbound \
                     and tram[ATTR_DIRECTION] == ATTR_INBOUND_VAL:
-                return self._build_luas_tram_from_map(tram)
+                output_tram = tram
+                break
             elif direction == LuasDirection.Outbound \
                     and tram[ATTR_DIRECTION] == ATTR_OUTBOUND_VAL:
-                return self._build_luas_tram_from_map(tram)
+                output_tram = tram
+                break
+
+        return self._build_luas_tram_from_map(output_tram)
 
     @staticmethod
     def _build_luas_tram_from_map(tram):
