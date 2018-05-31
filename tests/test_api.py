@@ -10,9 +10,9 @@ Licensed under MIT License
 
 import unittest
 import requests_mock
-from luas.api import LuasDirection
+from luas.api import LuasDirection, LuasLine
 import luas.api
-import sys, os
+import os
 
 class TestApi(unittest.TestCase):
     """ Tests luas.api module. """
@@ -69,6 +69,8 @@ class TestApi(unittest.TestCase):
         self.assertIsNotNone(all_trams)
         self.assertIsNotNone(all_trams[0])
         self.assertEqual(all_trams[0].due, '5')
+        self.assertEqual(all_trams[0].direction, LuasDirection.Inbound)
+        self.assertEqual(all_trams[0].destination, 'Broombridge')
 
     @requests_mock.mock()
     def test_default_line_status(self, m):
@@ -77,6 +79,60 @@ class TestApi(unittest.TestCase):
 
         client = luas.api.LuasClient()
         self.assertEqual("Green Line services operating normally", client.line_status())
+
+    @requests_mock.mock()
+    def test_red_line_status(self, m):
+        with open(self._file_path('tallaght.xml')) as xml_file:
+            m.register_uri('GET', '/xml/get.ashx?action=forecast&encrypt=false&stop=TAL', text=xml_file.read(), status_code=200)
+
+        client = luas.api.LuasClient()
+        self.assertEqual("Red Line services operating normally", client.line_status(LuasLine.Red))
+
+    @requests_mock.mock()
+    def test_tallaght_status(self, m):
+        with open(self._file_path('tallaght.xml')) as xml_file:
+            m.register_uri('GET', '/xml/get.ashx?action=forecast&encrypt=false&stop=TAL', text=xml_file.read(), status_code=200)
+
+        client = luas.api.LuasClient()
+        tallaght = client.all_trams('TAL')
+        self.assertIsNotNone(tallaght)
+        self.assertEqual(2, len(tallaght))
+
+    @requests_mock.mock()
+    def test_tallaght_outbound(self, m):
+        with open(self._file_path('tallaght.xml')) as xml_file:
+            m.register_uri('GET', '/xml/get.ashx?action=forecast&encrypt=false&stop=TAL', text=xml_file.read(), status_code=200)
+
+        client = luas.api.LuasClient()
+        tallaght = client.next_tram('TAL', LuasDirection.Outbound)
+        # There are never any outbound trams from Tallaght as it is the end of the line
+        self.assertIs(None, tallaght)
+
+    @requests_mock.mock()
+    def test_endpoint_failure(self, m):
+        m.register_uri('GET', '/xml/get.ashx?action=forecast&encrypt=false&stop=STS', status_code=404)
+
+        client = luas.api.LuasClient()
+        status = client.line_status()
+        self.assertEqual('n/a', status)
+
+    @requests_mock.mock()
+    def test_invalid_response(self, m):
+        with open(self._file_path('failed.xml')) as xml_file:
+            m.register_uri('GET', '/xml/get.ashx?action=forecast&encrypt=false&stop=STS', text=xml_file.read(), status_code=200)
+
+        client = luas.api.LuasClient()
+        status = client.line_status()
+        self.assertEqual('n/a', status)
+
+    @requests_mock.mock()
+    def test_invalid_response_empty(self, m):
+        with open(self._file_path('empty_response')) as xml_file:
+            m.register_uri('GET', '/xml/get.ashx?action=forecast&encrypt=false&stop=STS', text=xml_file.read(), status_code=200)
+
+        client = luas.api.LuasClient()
+        status = client.line_status()
+        self.assertEqual('n/a', status)
 
     @staticmethod
     def _file_path(file_name):

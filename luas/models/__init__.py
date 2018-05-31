@@ -36,24 +36,12 @@ class LuasTram(object):
         """ Fetch the due property """
         return self._due
 
-    @due.setter
-    def due(self, value):
-        self._due = value
-
     @property
     def direction(self):
         """ Fetch the direction property """
         return self._direction
 
-    @direction.setter
-    def direction(self, value):
-        self._direction = value
-
     @property
     def destination(self):
         """ Fetch the destination property """
         return self._destination
-
-    @destination.setter
-    def destiation(self, value):
-        self._destination = value

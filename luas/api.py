@@ -10,6 +10,7 @@ Licensed under the MIT License
 
 import logging
 from xml.etree import ElementTree
+from xml.etree.ElementTree import ParseError
 import requests
 from luas.models import LuasLine, LuasDirection, LuasTram
 
@@ -31,6 +32,7 @@ DEFAULT_RED_LINE_STOP = 'TAL'
 ATTR_STOP_VAL = 'stop'
 ATTR_DUE_VAL = 'dueMins'
 ATTR_DESTINATION_VAL = 'destination'
+ATTR_NO_TRAMS = 'No trams forecast'
 
 XPATH_STATUS = ".//message"
 XPATH_DIRECTION_INBOUND = ".//direction[@name='Inbound']/tram"
@@ -42,23 +44,31 @@ class LuasClient(object):
     Create new Luas API client interface
     """
 
-    def __init__(self, api_endpoint=None):
+    def __init__(self, api_endpoint=None, use_gzip=True):
 
         if not api_endpoint:
             api_endpoint = DEFAULT_LUAS_API
 
         _LOGGER.debug("Using API at %s", api_endpoint)
-        self.api_endpoint = api_endpoint
+
+        self._api_endpoint = api_endpoint
+        self._use_gzip = use_gzip
+        self._session = requests.Session()
 
     def stop_details(self, stop):
         """
-        Returns raw JSON of the Luas details from the requested stop
+        Returns raw JSON of the Luas details from the requested stop.
         :param stop: Stop to enquire about
         :return:
         """
         luas_params = DEFAULT_PARAMS
         DEFAULT_PARAMS[ATTR_STOP_VAL] = stop
-        api_response = requests.get(self.api_endpoint, params=luas_params)
+
+        if self._use_gzip:
+            self._session.headers.update({'Accept-Encoding': 'gzip'})
+
+        api_response = self._session.get(self._api_endpoint,
+                                         params=luas_params)
 
         response = {
             ATTR_STATUS: 'n/a',
@@ -75,24 +85,33 @@ class LuasClient(object):
                 result = tree.findall(XPATH_DIRECTION_INBOUND)
                 if result is not None:
                     for tram in result:
-                        trams.append({
-                            ATTR_DUE: tram.attrib[ATTR_DUE_VAL],
-                            ATTR_DIRECTION: ATTR_INBOUND_VAL,
-                            ATTR_DESTINATION: tram.attrib[ATTR_DESTINATION_VAL]
-                        })
+                        if tram.attrib[ATTR_DESTINATION_VAL] != ATTR_NO_TRAMS:
+                            trams.append({
+                                ATTR_DUE: tram.attrib[ATTR_DUE_VAL],
+                                ATTR_DIRECTION: ATTR_INBOUND_VAL,
+                                ATTR_DESTINATION:
+                                    tram.attrib[ATTR_DESTINATION_VAL]
+                            })
 
                 result = tree.findall(XPATH_DIRECTION_OUTBOUND)
                 if result is not None:
                     for tram in result:
-                        trams.append({
-                            ATTR_DUE: tram.attrib[ATTR_DUE_VAL],
-                            ATTR_DIRECTION: ATTR_OUTBOUND_VAL,
-                            ATTR_DESTINATION: tram.attrib[ATTR_DESTINATION_VAL]
-                        })
+                        if tram.attrib[ATTR_DESTINATION_VAL] != ATTR_NO_TRAMS:
+                            trams.append({
+                                ATTR_DUE: tram.attrib[ATTR_DUE_VAL],
+                                ATTR_DIRECTION: ATTR_OUTBOUND_VAL,
+                                ATTR_DESTINATION:
+                                    tram.attrib[ATTR_DESTINATION_VAL]
+                            })
 
                 response[ATTR_STATUS] = status
                 response[ATTR_TRAMS] = trams
-
+            except ParseError as parse_err:
+                _LOGGER.error(
+                    'There was a problem parsing the Luas API response %s',
+                    parse_err
+                )
+                _LOGGER.error('Entire response %s', api_response.content)
             except AttributeError as attib_err:
                 _LOGGER.error(
                     'There was a problem parsing the Luas API response %s',
@@ -160,12 +179,15 @@ class LuasClient(object):
 
     @staticmethod
     def _build_luas_tram_from_map(tram):
-        direction = LuasDirection.Inbound
-        if tram[ATTR_DIRECTION] == ATTR_OUTBOUND_VAL:
-            direction = LuasDirection.Outbound
+        if tram is not None:
+            direction = LuasDirection.Inbound
+            if tram[ATTR_DIRECTION] == ATTR_OUTBOUND_VAL:
+                direction = LuasDirection.Outbound
 
-        return LuasTram(
-            tram[ATTR_DUE],
-            direction,
-            tram[ATTR_DESTINATION]
-        )
+            return LuasTram(
+                tram[ATTR_DUE],
+                direction,
+                tram[ATTR_DESTINATION]
+            )
+        else:
+            return None

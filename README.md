@@ -1,11 +1,14 @@
-# Introduction [![Build Status](https://travis-ci.org/ronanmu/luas.py.svg?branch=master)](https://travis-ci.org/ronanmu/luas.py) [![Coverage Status](https://coveralls.io/repos/ronanmu/luas.py/badge.svg)](https://coveralls.io/r/ronanmu/luas.py)
-luas.py is a python module providing a simple interface to the Dublin Luas API
+# Introduction 
+
+[![Build Status](https://travis-ci.org/ronanmu/luas.py.svg?branch=master)](https://travis-ci.org/ronanmu/luas.py) [![Coverage Status](https://coveralls.io/repos/ronanmu/luas.py/badge.svg)](https://coveralls.io/r/ronanmu/luas.py) [![PyPI version](https://badge.fury.io/py/luas.py.svg)](https://badge.fury.io/py/luas.py)
+
+luas.py is a python module providing an interface to the the Luas Forecasting API from [data.gov.ie](https://data.gov.ie/dataset/luas-forecasting-api/resource/078346e0-fe7f-4e71-9c51-21c78520dc3d).
+
 luas.py is licensed under the MIT license.
 
 Getting started
 ===============
 
-luas.py uses the Luas Forecasting API from [data.gov.ie](https://data.gov.ie/dataset/luas-forecasting-api/resource/078346e0-fe7f-4e71-9c51-21c78520dc3d).
 
 Requirements
 ------------
@@ -32,13 +35,13 @@ luas_client = luas.api.LuasClient()
 green_line_status = luas_client.line_status(LuasLine.Green)
 
 # This will return the next tram from Balally, in the default direction (inbound)
-next_bal = client.next_tram('BAL')
+next_bal = luas_client.next_tram('BAL')
 
 # This will return the next outbound tram from Ranelagh
-next_ran = client.next_tram('RAN', LuasDirection.Outbound)
+next_ran = luas_client.next_tram('RAN', LuasDirection.Outbound)
 
 # Return raw JSON for a stop
-stop_details = client.stop_details('BAL')
+stop_details = luas_client.stop_details('BAL')
 
 ```
 
