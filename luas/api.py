@@ -12,7 +12,7 @@ import logging
 from xml.etree import ElementTree
 from xml.etree.ElementTree import ParseError
 import requests
-from luas.models import LuasLine, LuasDirection, LuasTram
+from luas.models import LuasLine, LuasDirection, LuasTram, LuasStops
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -21,6 +21,7 @@ ATTR_TRAMS = 'trams'
 ATTR_DUE = 'due'
 ATTR_DESTINATION = 'destination'
 ATTR_DIRECTION = 'direction'
+ATTR_ABBREV = 'abrev'
 
 ATTR_INBOUND_VAL = 'Inbound'
 ATTR_OUTBOUND_VAL = 'Outbound'
@@ -54,6 +55,7 @@ class LuasClient(object):
         self._api_endpoint = api_endpoint
         self._use_gzip = use_gzip
         self._session = requests.Session()
+        self._stops = LuasStops()
 
     def stop_details(self, stop):
         """
@@ -61,19 +63,24 @@ class LuasClient(object):
         :param stop: Stop to enquire about
         :return:
         """
+        response = {
+            ATTR_STATUS: 'n/a',
+            ATTR_TRAMS: []
+        }
+
         luas_params = DEFAULT_PARAMS
-        DEFAULT_PARAMS[ATTR_STOP_VAL] = stop
+        selected_stop = self._stops.stop(stop)
+        if selected_stop is None:
+            _LOGGER.error("Stop '%s' is not valid", stop)
+            return response
+
+        DEFAULT_PARAMS[ATTR_STOP_VAL] = selected_stop[ATTR_ABBREV]
 
         if self._use_gzip:
             self._session.headers.update({'Accept-Encoding': 'gzip'})
 
         api_response = self._session.get(self._api_endpoint,
                                          params=luas_params)
-
-        response = {
-            ATTR_STATUS: 'n/a',
-            ATTR_TRAMS: []
-        }
 
         if api_response.status_code == 200:
             _LOGGER.debug('Response received for %s', stop)

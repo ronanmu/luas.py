@@ -45,3 +45,37 @@ class LuasTram(object):
     def destination(self):
         """ Fetch the destination property """
         return self._destination
+
+
+class LuasStops(object):
+    """Represents Luas stops"""
+
+    def __init__(self):
+        import json
+        with open(self._file_path('luas_stops.json')) as stops_file:
+            self._stops = json.load(stops_file)
+
+    @property
+    def stops(self):
+        """Return the list of Luas Stops"""
+        return self._stops
+
+    def stop(self, stop_name):
+        """
+        Returns the stop matching the provided name or abbreviation
+        :param stop_name:
+        :return:
+        """
+        return next((stop for stop in self._stops
+                     if stop['abrev'] == stop_name
+                     or stop['name'] == stop_name), None)
+
+    def stop_exists(self, stop):
+        """Check if a stop exists or not"""
+        return self.stop(stop) is not None
+
+    @staticmethod
+    def _file_path(file_name):
+        import os
+        thispath = os.path.dirname(__file__)
+        return "{}/{}".format(thispath, file_name)

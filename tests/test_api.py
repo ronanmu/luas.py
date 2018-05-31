@@ -104,7 +104,7 @@ class TestApi(unittest.TestCase):
             m.register_uri('GET', '/xml/get.ashx?action=forecast&encrypt=false&stop=TAL', text=xml_file.read(), status_code=200)
 
         client = luas.api.LuasClient()
-        tallaght = client.next_tram('TAL', LuasDirection.Outbound)
+        tallaght = client.next_tram('Tallaght', LuasDirection.Outbound)
         # There are never any outbound trams from Tallaght as it is the end of the line
         self.assertIs(None, tallaght)
 
@@ -133,6 +133,24 @@ class TestApi(unittest.TestCase):
         client = luas.api.LuasClient()
         status = client.line_status()
         self.assertEqual('n/a', status)
+
+    def test_invalid_stop_name(self):
+        client = luas.api.LuasClient()
+        details = client.next_tram('My pretend stop')
+        self.assertIs(None, details)
+
+    def test_load_stops_file(self):
+        from luas.models import LuasStops
+        stops = LuasStops()
+        self.assertIsNotNone(stops.stops)
+        self.assertTrue(stops.stop_exists('BAL'))
+        self.assertTrue(stops.stop_exists('Dundrum'))
+        self.assertTrue(stops.stop_exists('St. Stephen\'s Green'))
+        self.assertTrue(stops.stop_exists('O\'Connell - GPO'))
+        self.assertFalse(stops.stop_exists('123'))
+
+        balally = stops.stop('Balally')
+        self.assertEqual('1', balally['isParkRide'])
 
     @staticmethod
     def _file_path(file_name):
