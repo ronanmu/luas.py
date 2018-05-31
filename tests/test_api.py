@@ -138,6 +138,8 @@ class TestApi(unittest.TestCase):
         client = luas.api.LuasClient()
         details = client.next_tram('My pretend stop')
         self.assertIs(None, details)
+        stop_details = client.stop_details('My pretend stop')
+        self.assertEqual('n/a', stop_details['status'])
 
     def test_load_stops_file(self):
         from luas.models import LuasStops

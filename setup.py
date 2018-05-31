@@ -20,5 +20,8 @@ setuptools.setup(
     classifiers = [
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License'
+    ],
+    data_files = [
+        'luas/models/luas_stops.json'
     ]
 )
