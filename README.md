@@ -54,7 +54,7 @@ next_bal = luas_client.next_tram('BAL')
 next_ran = luas_client.next_tram('RAN', LuasDirection.Outbound)
 
 # Return raw JSON for a stop
-stop_details = luas_client.stop_details('BAL')
+stop_details = luas_client.stop_details('Balally')
 
 ```
 
