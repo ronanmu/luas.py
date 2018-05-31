@@ -5,10 +5,10 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name = 'luas.py',
-    version = '0.3',
+    version = '0.3.2',
     packages = setuptools.find_packages(),
     url = 'https://github.com/ronanmu/luas.py',
-    download_url = 'https://github.com/ronanmu/luas.py/tarball/0.3',
+    download_url = 'https://github.com/ronanmu/luas.py/tarball/0.3.2',
     license = 'MIT',
     requires=['requests'],
     author = 'Ronan Murray',
@@ -22,6 +22,6 @@ setuptools.setup(
         'License :: OSI Approved :: MIT License'
     ],
     data_files = [
-        'luas/models/luas_stops.json'
+        ('luas/models', ['luas/models/luas_stops.json'])
     ]
 )
