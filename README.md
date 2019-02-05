@@ -1,6 +1,6 @@
 # Introduction 
 
-[![Build Status](https://travis-ci.org/ronanmu/luas.py.svg?branch=master)](https://travis-ci.org/ronanmu/luas.py) [![Coverage Status](https://coveralls.io/repos/ronanmu/luas.py/badge.svg)](https://coveralls.io/r/ronanmu/luas.py) [![PyPI version](https://badge.fury.io/py/luas.py.svg)](https://badge.fury.io/py/luas.py)
+[![Build Status](https://travis-ci.org/ronanmu/luas.py.svg?branch=master)](https://travis-ci.org/ronanmu/luas.py) [![Coverage Status](https://coveralls.io/repos/github/ronanmu/luas.py/badge.svg?branch=master)](https://coveralls.io/github/ronanmu/luas.py?branch=master) [![PyPI version](https://badge.fury.io/py/luas.py.svg)](https://badge.fury.io/py/luas.py)
 
 luas.py is a python module providing an interface to the the Luas Forecasting API from [data.gov.ie](https://data.gov.ie/dataset/luas-forecasting-api/resource/078346e0-fe7f-4e71-9c51-21c78520dc3d). 
 
