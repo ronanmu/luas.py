@@ -176,9 +176,12 @@ class LuasClient:
             if direction == LuasDirection.Inbound \
                     and tram[ATTR_DIRECTION] == ATTR_INBOUND_VAL:
                 output_tram = tram
-            elif direction == LuasDirection.Outbound \
+                break
+
+            if direction == LuasDirection.Outbound \
                     and tram[ATTR_DIRECTION] == ATTR_OUTBOUND_VAL:
                 output_tram = tram
+                break
 
         return self._build_luas_tram_from_map(output_tram)
 
