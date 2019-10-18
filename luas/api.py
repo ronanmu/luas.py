@@ -40,7 +40,7 @@ XPATH_DIRECTION_INBOUND = ".//direction[@name='Inbound']/tram"
 XPATH_DIRECTION_OUTBOUND = ".//direction[@name='Outbound']/tram"
 
 
-class LuasClient(object):
+class LuasClient:
     """
     Create new Luas API client interface
     """
@@ -176,11 +176,9 @@ class LuasClient(object):
             if direction == LuasDirection.Inbound \
                     and tram[ATTR_DIRECTION] == ATTR_INBOUND_VAL:
                 output_tram = tram
-                break
             elif direction == LuasDirection.Outbound \
                     and tram[ATTR_DIRECTION] == ATTR_OUTBOUND_VAL:
                 output_tram = tram
-                break
 
         return self._build_luas_tram_from_map(output_tram)
 
@@ -196,5 +194,5 @@ class LuasClient(object):
                 direction,
                 tram[ATTR_DESTINATION]
             )
-        else:
-            return None
+
+        return None

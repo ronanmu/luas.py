@@ -7,7 +7,7 @@ Tests the Luas API
 Copyright (c) 2017 Ronan Murray <https://github.com/ronanmu>
 Licensed under MIT License
 """
-
+# flake8: noqa
 import unittest
 import requests_mock
 from luas.api import LuasDirection, LuasLine

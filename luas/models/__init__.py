@@ -629,7 +629,7 @@ class LuasDirection(Enum):
     Outbound = 2
 
 
-class LuasTram(object):
+class LuasTram:
     """ Represents a tram """
 
     def __init__(self, due, direction, destination):
@@ -653,7 +653,7 @@ class LuasTram(object):
         return self._destination
 
 
-class LuasStops(object):
+class LuasStops:
     """Represents Luas stops"""
 
     def __init__(self):
@@ -671,8 +671,7 @@ class LuasStops(object):
         :return:
         """
         return next((stop for stop in self._stops
-                     if stop['abrev'] == stop_name
-                     or stop['name'] == stop_name), None)
+                     if stop_name in (stop['abrev'], stop['name'])), None)
 
     def stop_exists(self, stop):
         """Check if a stop exists or not"""
