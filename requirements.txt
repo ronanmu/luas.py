@@ -1,2 +1,2 @@
-requests>=2.0
+requests>=2.34.1
 requests_mock
